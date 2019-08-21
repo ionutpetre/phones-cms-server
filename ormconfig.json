@@ -1,0 +1,12 @@
+{
+  "type": "postgres",
+  "host": "postgresql",
+  "port": 5432,
+  "username": "user",
+  "password": "password",
+  "database": "phones-cms",
+  "entities": ["src/**/*.entity{.ts,.js}"],
+  "migrations": ["migrations/*.ts"],
+  "cli": { "migrationsDir": "migrations" },
+  "synchronize": false
+}
