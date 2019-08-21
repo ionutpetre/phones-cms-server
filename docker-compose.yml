@@ -1,0 +1,24 @@
+version: '2'
+services:
+  postgresql:
+    image: 'postgres'
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=phones-cms
+  server:
+    image: 'node:latest'
+    environment:
+      - NODE_ENV=development
+      - DEBUG_COLORS=true
+    command: bash -c 'npm run db-migrate:up && npm run start'
+    volumes:
+      - '.:/home/node/app'
+    working_dir: /home/node/app
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgresql
