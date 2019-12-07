@@ -4,14 +4,15 @@ import { INestApplication } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 
+import { AppEndpoints } from './../src/app.constants';
 import { PhonesModule } from '../src/phones/phones.module';
 import { Phone } from '../src/phones/phone.entity';
 import { phones } from '../src/phones/phones.fixtures';
 
 const phonesRepositoryMock = {
-  find: jest.fn(() => Promise.resolve(phones)),
+  getPhones: jest.fn(() => Promise.resolve(phones)),
   findOneOrFail: jest.fn(id => Promise.resolve(phones.find(p => p.id === id))),
-  save: jest.fn(phone => Promise.resolve(phone)),
+  savePhone: jest.fn(phone => Promise.resolve(phone)),
   remove: jest.fn(phone => Promise.resolve(phone)),
 };
 
@@ -30,9 +31,9 @@ describe('PhonesController (e2e)', () => {
   });
 
   beforeEach(() => {
-    phonesRepositoryMock.find.mockClear();
+    phonesRepositoryMock.getPhones.mockClear();
     phonesRepositoryMock.findOneOrFail.mockClear();
-    phonesRepositoryMock.save.mockClear();
+    phonesRepositoryMock.savePhone.mockClear();
     phonesRepositoryMock.remove.mockClear();
   });
 
@@ -40,9 +41,9 @@ describe('PhonesController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET) - should get all phones', async () => {
+  it(`${AppEndpoints.PHONES} (GET) - should get all phones`, () => {
     return request(app.getHttpServer())
-      .get('/phones')
+      .get(AppEndpoints.PHONES)
       .set('Accept', 'application/json')
       .expect(200)
       .then(res => {
@@ -50,10 +51,10 @@ describe('PhonesController (e2e)', () => {
       });
   });
 
-  it('/ (POST) - should add a phone', async () => {
+  it(`${AppEndpoints.PHONES} (POST) - should add a phone`, () => {
     const phone = new Phone(4, 'Nokia', '1110', 'blue', {});
     return request(app.getHttpServer())
-      .post('/phones')
+      .post(AppEndpoints.PHONES)
       .set('Accept', 'application/json')
       .send(phone)
       .expect(201)
@@ -62,10 +63,10 @@ describe('PhonesController (e2e)', () => {
       });
   });
 
-  it('/:id (PUT) - should update a phone', async () => {
+  it(`${AppEndpoints.PHONES}/:id (PUT) - should update a phone`, () => {
     const phone1 = { ...phones[0], name: 'SAMSUNG' };
     return request(app.getHttpServer())
-      .put(`/phones/${phone1.id}`)
+      .put(`${AppEndpoints.PHONES}/${phone1.id}`)
       .set('Accept', 'application/json')
       .send(phone1)
       .expect(200)
@@ -74,10 +75,10 @@ describe('PhonesController (e2e)', () => {
       });
   });
 
-  it('/:id (DELETE) - delete a phone', () => {
+  it(`${AppEndpoints.PHONES}/:id (DELETE) - should delete a phone`, () => {
     const phone1 = phones[0];
     return request(app.getHttpServer())
-      .delete(`/phones/${phone1.id}`)
+      .delete(`${AppEndpoints.PHONES}/${phone1.id}`)
       .set('Accept', 'application/json')
       .expect(204);
   });
