@@ -1,36 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { plainToClassFromExist } from 'class-transformer';
 
 import { Phone } from './phone.entity';
-import { PhoneDto } from './phone.dto';
+import { PhonesGetDto } from './dto/phones-get-dto';
+import { PhoneAddDto } from './dto/phone-add.dto';
+import { PhoneUpdateDto } from './dto/phone-update.dto';
+import { PhoneRepository } from './phone.repository';
 
 @Injectable()
 export class PhonesService {
-  constructor(
-    @InjectRepository(Phone)
-    private readonly phoneRepository: Repository<Phone>,
-  ) {}
+  constructor(private readonly phoneRepository: PhoneRepository) {}
 
-  async getAll(): Promise<Phone[]> {
-    return await this.phoneRepository.find();
+  getByQuery(query: PhonesGetDto): Promise<Phone[]> {
+    return this.phoneRepository.getPhones(query);
   }
 
-  async getById(id: number): Promise<Phone> {
-    return await this.phoneRepository.findOneOrFail(id);
+  getById(id: number): Promise<Phone> {
+    return this.phoneRepository.findOneOrFail(id);
   }
 
-  async add(phoneDto: PhoneDto): Promise<Phone> {
-    const phone = new Phone();
-    const phoneToAdd: Phone = plainToClassFromExist(phone, phoneDto);
-    return await this.phoneRepository.save(phoneToAdd);
+  add(phoneDto: PhoneAddDto): Promise<Phone> {
+    return this.phoneRepository.savePhone(phoneDto);
   }
 
-  async update(id: number, phoneDto: PhoneDto): Promise<Phone> {
+  async update(id: number, phoneDto: PhoneUpdateDto): Promise<Phone> {
     const phone: Phone = await this.getById(id);
-    const phoneToUpdate: Phone = plainToClassFromExist(phone, phoneDto);
-    return this.phoneRepository.save(phoneToUpdate);
+    return this.phoneRepository.savePhone(phoneDto, phone);
   }
 
   async delete(id: number): Promise<Phone> {

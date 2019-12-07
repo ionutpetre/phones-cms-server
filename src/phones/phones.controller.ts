@@ -5,60 +5,69 @@ import {
   Put,
   Delete,
   Param,
+  Query,
   Body,
   HttpCode,
+  HttpStatus,
   UsePipes,
+  ParseIntPipe,
   ValidationPipe,
-  Logger,
-  LoggerService,
 } from '@nestjs/common';
 
-import { PhonesService } from './phones.service';
+import { AppEndpoints } from './../app.constants';
+import { AppLogger } from './../app.logger';
 import { Phone } from './phone.entity';
-import { PhoneDto } from './phone.dto';
+import { PhonesGetDto } from './dto/phones-get-dto';
+import { PhoneAddDto } from './dto/phone-add.dto';
+import { PhoneUpdateDto } from './dto/phone-update.dto';
+import { PhonesService } from './phones.service';
 
-@Controller('phones')
+@Controller(AppEndpoints.PHONES)
 export class PhonesController {
-  private readonly logger: LoggerService;
+  private readonly logger: AppLogger;
 
   constructor(private readonly phonesService: PhonesService) {
-    this.logger = new Logger(PhonesController.name);
+    this.logger = new AppLogger(PhonesController.name);
   }
 
   @Get()
-  async getAll(): Promise<Phone[]> {
-    this.logger.log('Get all phones');
-    return await this.phonesService.getAll();
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe())
+  getByQuery(@Query() query: PhonesGetDto): Promise<Phone[]> {
+    this.logger.logJson('Get phones by query', query);
+    return this.phonesService.getByQuery(query);
   }
 
   @Get(':id')
-  async getById(@Param('id') id: number): Promise<Phone> {
-    this.logger.log('Get phone by id');
-    return await this.phonesService.getById(id);
+  @HttpCode(HttpStatus.OK)
+  getById(@Param('id', new ParseIntPipe()) id: number): Promise<Phone> {
+    this.logger.log(`Get phone with id ${id}`);
+    return this.phonesService.getById(id);
   }
 
   @Post()
-  @HttpCode(201)
-  @UsePipes(new ValidationPipe({ skipMissingProperties: true }))
-  async add(@Body() phoneDto: PhoneDto): Promise<Phone> {
-    this.logger.log(`Add a new phone ${JSON.stringify(phoneDto)}`);
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ValidationPipe())
+  add(@Body() phoneDto: PhoneAddDto): Promise<Phone> {
+    this.logger.logJson('Add phone', phoneDto);
     return this.phonesService.add(phoneDto);
   }
 
   @Put(':id')
-  @UsePipes(new ValidationPipe({ skipMissingProperties: true }))
-  async update(
-    @Param('id') id: number,
-    @Body() phoneDto: PhoneDto,
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe())
+  update(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() phoneDto: PhoneUpdateDto,
   ): Promise<Phone> {
-    this.logger.log(`Update phone id ${id} with ${JSON.stringify(phoneDto)}`);
+    this.logger.logJson('Update phone', phoneDto);
     return this.phonesService.update(id, phoneDto);
   }
 
   @Delete(':id')
-  @HttpCode(204)
-  async delete(@Param('id') id: number): Promise<Phone> {
-    this.logger.log(`Delete phone id ${id}`);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(@Param('id', new ParseIntPipe()) id: number): Promise<Phone> {
+    this.logger.log(`Delete phone with id ${id}`);
     return this.phonesService.delete(id);
   }
 }

@@ -1,17 +1,6 @@
-import {
-  IsInt,
-  IsString,
-  IsOptional,
-  IsDefined,
-  IsNotEmpty,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsDefined, IsNotEmpty, MaxLength } from 'class-validator';
 
-export class PhoneDto {
-  @IsInt()
-  @IsOptional()
-  id?: number;
-
+export class PhoneAddDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
