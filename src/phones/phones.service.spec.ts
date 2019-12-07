@@ -1,15 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
-import { PhonesService } from './phones.service';
-import { PhoneDto } from './phone.dto';
 import { Phone } from './phone.entity';
+import { PhoneAddDto } from './dto/phone-add.dto';
+import { PhoneUpdateDto } from './dto/phone-update.dto';
+import { PhonesService } from './phones.service';
 import { phones } from './phones.fixtures';
 
 const phonesRepositoryMock = {
-  find: jest.fn(() => Promise.resolve(phones)),
+  getPhones: jest.fn(() => Promise.resolve(phones)),
   findOneOrFail: jest.fn(id => Promise.resolve(phones.find(p => p.id === id))),
-  save: jest.fn(phone => Promise.resolve(phone)),
+  savePhone: jest.fn(phone => Promise.resolve(phone)),
   remove: jest.fn(phone => Promise.resolve(phone)),
 };
 
@@ -31,20 +32,20 @@ describe('PhonesService', () => {
   });
 
   beforeEach(() => {
-    phonesRepositoryMock.find.mockClear();
+    phonesRepositoryMock.getPhones.mockClear();
     phonesRepositoryMock.findOneOrFail.mockClear();
     phonesRepositoryMock.remove.mockClear();
-    phonesRepositoryMock.save.mockClear();
+    phonesRepositoryMock.savePhone.mockClear();
   });
 
   it('should be defined', () => {
     expect(phonesService).toBeDefined();
   });
 
-  describe('getAll method', () => {
-    it('should call repostiory find method', async () => {
-      const results = await phonesService.getAll();
-      expect(phonesRepositoryMock.find).toHaveBeenCalled();
+  describe('getByQuery method', () => {
+    it('should call repository find method', async () => {
+      const results = await phonesService.getByQuery({});
+      expect(phonesRepositoryMock.getPhones).toHaveBeenCalled();
       expect(results).toEqual(phones);
     });
   });
@@ -60,7 +61,7 @@ describe('PhonesService', () => {
 
   describe('add method', () => {
     it('should call create method with expected dto', async () => {
-      const phoneDto: PhoneDto = {
+      const phoneDto: PhoneAddDto = {
         type: '',
         serial: '',
         color: '',
@@ -68,21 +69,24 @@ describe('PhonesService', () => {
       };
       const phoneToAdd: Phone = { id: undefined, ...phoneDto };
       expect(await phonesService.add(phoneDto)).toEqual(phoneToAdd);
-      expect(phonesRepositoryMock.save).toHaveBeenCalledWith(phoneToAdd);
+      expect(phonesRepositoryMock.savePhone).toHaveBeenCalledWith(phoneToAdd);
     });
   });
 
   describe('update method', () => {
     it('should call getById method and save method with expected dto', async () => {
       const phoneToUpdate: Phone = phones[0];
-      const phoneDto: PhoneDto = { ...phoneToUpdate };
+      const phoneDto: PhoneUpdateDto = { ...phoneToUpdate };
       expect(await phonesService.update(phoneToUpdate.id, phoneDto)).toEqual(
         phoneToUpdate,
       );
       expect(phonesRepositoryMock.findOneOrFail).toHaveBeenCalledWith(
         phoneToUpdate.id,
       );
-      expect(phonesRepositoryMock.save).toHaveBeenCalledWith(phoneToUpdate);
+      expect(phonesRepositoryMock.savePhone).toHaveBeenCalledWith(
+        phoneDto,
+        phoneToUpdate,
+      );
     });
   });
 

@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PhonesController } from './phones.controller';
-import { PhoneDto } from './phone.dto';
 import { Phone } from './phone.entity';
+import { PhoneAddDto } from './dto/phone-add.dto';
+import { PhoneUpdateDto } from './dto/phone-update.dto';
+import { PhonesController } from './phones.controller';
 import { phones } from './phones.fixtures';
+import { PhonesGetDto } from './dto/phones-get-dto';
 
 const phonesServiceMock = {
-  getAll: jest.fn(() => Promise.resolve(phones)),
+  getByQuery: jest.fn(() => Promise.resolve(phones)),
   getById: jest.fn(id => Promise.resolve(phones.find(p => p.id === id))),
   add: jest.fn(() => Promise.resolve(new Phone())),
   update: jest.fn(id => Promise.resolve(phones.find(p => p.id === id))),
@@ -34,20 +36,25 @@ describe('PhonesController', () => {
     expect(phonesController).toBeDefined();
   });
 
-  it('should call getAll method', async () => {
-    const results = await phonesController.getAll();
-    expect(phonesServiceMock.getAll).toHaveBeenCalled();
+  it('should call getByQuery method with expected dto', async () => {
+    const query: PhonesGetDto = {
+      type: '',
+      serial: '',
+      color: '',
+    };
+    const results = await phonesController.getByQuery(query);
+    expect(phonesServiceMock.getByQuery).toHaveBeenCalledWith(query);
     expect(results).toEqual(phones);
   });
 
-  it('should call getById method', async () => {
+  it('should call getById method with expected id', async () => {
     const result = await phonesController.getById(1);
     expect(phonesServiceMock.getById).toHaveBeenCalledWith(1);
     expect(result).toEqual(phones[0]);
   });
 
   it('should call add method with expected dto', async () => {
-    const phoneDto: PhoneDto = {
+    const phoneDto: PhoneAddDto = {
       type: '',
       serial: '',
       color: '',
@@ -59,7 +66,7 @@ describe('PhonesController', () => {
 
   it('should call update method with expected id and dto', async () => {
     const phoneToUpdate: Phone = phones[0];
-    const phoneDto: PhoneDto = { ...phoneToUpdate };
+    const phoneDto: PhoneUpdateDto = { ...phoneToUpdate };
     expect(
       await phonesController.update(phoneToUpdate.id, phoneDto),
     ).toBeInstanceOf(Phone);
